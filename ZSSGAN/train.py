@@ -101,7 +101,7 @@ def train(args):
                 if args.crop_for_cars:
                     sampled_dst = sampled_dst[:, :, 64:448, :]
 
-                grid_rows = int(args.n_sample ** 0.5)
+                grid_rows = 4
 
                 if SAVE_SRC:
                     save_images(sampled_src, sample_dir, "src", grid_rows, i)

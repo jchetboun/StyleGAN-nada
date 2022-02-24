@@ -4,17 +4,36 @@ import os
 import torch
 from torch.nn import functional as F
 from torch.autograd import Function
-from torch.utils.cpp_extension import load
+from torch.utils.cpp_extension import load, _import_module_from_library
 
 
 module_path = os.path.dirname(__file__)
-upfirdn2d_op = load(
-    "upfirdn2d",
-    sources=[
-        os.path.join(module_path, "upfirdn2d.cpp"),
-        os.path.join(module_path, "upfirdn2d_kernel.cu"),
-    ],
-)
+# upfirdn2d_op = load(
+#     "upfirdn2d",
+#     sources=[
+#         os.path.join(module_path, "upfirdn2d.cpp"),
+#         os.path.join(module_path, "upfirdn2d_kernel.cu"),
+#     ],
+# )
+build_directory = "/root/.cache/torch_extensions/upfirdn2d"
+if os.path.exists(os.path.join(build_directory, "upfirdn2d.so")):
+    upfirdn2d_op = _import_module_from_library(
+        module_name="upfirdn2d",
+        path="/root/.cache/torch_extensions/upfirdn2d",
+        is_python_module=True,
+    )
+else:
+    try:
+        upfirdn2d_op = load(
+            "upfirdn2d",
+            verbose=True,
+            sources=[
+                os.path.join(module_path, "upfirdn2d.cpp"),
+                os.path.join(module_path, "upfirdn2d_kernel.cu"),
+            ],
+        )
+    except OSError:
+        pass
 
 
 class UpFirDn2dBackward(Function):

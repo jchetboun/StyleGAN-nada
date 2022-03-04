@@ -25,13 +25,15 @@ def copytree(src, dst, symlinks=False, ignore=None):
                 shutil.copy2(s, d)
 
 def save_images(images: torch.Tensor, output_dir: str, file_prefix: str, nrows: int, iteration: int) -> None:
+    output_name = os.path.join(output_dir, f"{file_prefix}_{str(iteration).zfill(6)}.jpg")
     utils.save_image(
         images,
-        os.path.join(output_dir, f"{file_prefix}_{str(iteration).zfill(6)}.jpg"),
+        output_name,
         nrow=nrows,
         normalize=True,
         range=(-1, 1),
     )
+    return output_name
 
 def save_torch_img(img: torch.Tensor, output_dir: str, file_name: str) -> None:
     img = img.permute(1, 2, 0).cpu().detach().numpy()

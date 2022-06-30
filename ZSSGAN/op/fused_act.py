@@ -15,11 +15,11 @@ module_path = os.path.dirname(__file__)
 #         os.path.join(module_path, "fused_bias_act_kernel.cu"),
 #     ],
 # )
-build_directory = "/root/.cache/torch_extensions/fused"
+build_directory = "/root/.cache/torch_extensions/py38_cu116/fused"
 if os.path.exists(os.path.join(build_directory, "fused.so")):
     fused = _import_module_from_library(
         module_name="fused",
-        path="/root/.cache/torch_extensions/fused",
+        path="/root/.cache/torch_extensions/py38_cu116/fused",
         is_python_module=True,
     )
 else:

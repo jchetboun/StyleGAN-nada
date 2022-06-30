@@ -15,11 +15,11 @@ module_path = os.path.dirname(__file__)
 #         os.path.join(module_path, "upfirdn2d_kernel.cu"),
 #     ],
 # )
-build_directory = "/root/.cache/torch_extensions/upfirdn2d"
+build_directory = "/root/.cache/torch_extensions/py38_cu116/upfirdn2d"
 if os.path.exists(os.path.join(build_directory, "upfirdn2d.so")):
     upfirdn2d_op = _import_module_from_library(
         module_name="upfirdn2d",
-        path="/root/.cache/torch_extensions/upfirdn2d",
+        path="/root/.cache/torch_extensions/py38_cu116/upfirdn2d",
         is_python_module=True,
     )
 else:

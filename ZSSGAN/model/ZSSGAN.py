@@ -145,7 +145,7 @@ class SG2Discriminator(torch.nn.Module):
         return self.discriminator(images)
 
 class ZSSGAN(torch.nn.Module):
-    def __init__(self, args):
+    def __init__(self, args, load_losses=True):
         super(ZSSGAN, self).__init__()
 
         self.args = args
@@ -163,19 +163,24 @@ class ZSSGAN(torch.nn.Module):
         self.generator_trainable.unfreeze_layers(self.generator_trainable.get_training_layers(args.phase))
         self.generator_trainable.train()
 
-        # Losses
-        self.clip_loss_models = {model_name: CLIPLoss(self.device, 
-                                                      lambda_direction=args.lambda_direction, 
-                                                      lambda_patch=args.lambda_patch, 
-                                                      lambda_global=args.lambda_global, 
-                                                      lambda_manifold=args.lambda_manifold, 
-                                                      lambda_texture=args.lambda_texture,
-                                                      clip_model=model_name) 
-                                for model_name in args.clip_models}
+        if (load_losses):
+            # Losses
+            self.clip_loss_models = {model_name: CLIPLoss(self.device,
+                                                          lambda_direction=args.lambda_direction,
+                                                          lambda_patch=args.lambda_patch,
+                                                          lambda_global=args.lambda_global,
+                                                          lambda_manifold=args.lambda_manifold,
+                                                          lambda_texture=args.lambda_texture,
+                                                          clip_model=model_name)
+                                    for model_name in args.clip_models}
 
-        self.clip_model_weights = {model_name: weight for model_name, weight in zip(args.clip_models, args.clip_model_weights)}
+            self.clip_model_weights = {model_name: weight for model_name, weight in zip(args.clip_models, args.clip_model_weights)}
 
-        self.mse_loss  = torch.nn.MSELoss()
+            self.mse_loss  = torch.nn.MSELoss()
+        else:
+            self.clip_loss_models = None
+            self.clip_model_weights = None
+            self.mse_loss = None
 
         self.source_class = args.source_class
         self.target_class = args.target_class
@@ -274,8 +279,11 @@ class ZSSGAN(torch.nn.Module):
             frozen_img = self.generator_frozen(w_styles, input_is_latent=True, truncation=truncation, randomize_noise=randomize_noise)[0]
 
         trainable_img = self.generator_trainable(w_styles, input_is_latent=True, truncation=truncation, randomize_noise=randomize_noise)[0]
-        
-        clip_loss = torch.sum(torch.stack([self.clip_model_weights[model_name] * self.clip_loss_models[model_name](frozen_img, self.source_class, trainable_img, self.target_class) for model_name in self.clip_model_weights.keys()]))
+
+        if self.clip_loss_models is None:
+            clip_loss = None
+        else:
+            clip_loss = torch.sum(torch.stack([self.clip_model_weights[model_name] * self.clip_loss_models[model_name](frozen_img, self.source_class, trainable_img, self.target_class) for model_name in self.clip_model_weights.keys()]))
 
         return [frozen_img, trainable_img], clip_loss
 
